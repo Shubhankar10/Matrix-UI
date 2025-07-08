@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Matrix Input</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Enter {{ n }}×{{ n }} Matrix</h1>
+        <form method="post" action="/">
+            <table>
+                  <!-- Top header row -->
+                  <tr>
+                    <th></th>
+                    {% for i in range(n) %}
+                    <th>{{ names[i] }}</th>
+                    {% endfor %}
+                </tr>
+                <!-- Matrix rows -->
+                {% for i in range(n) %}
+                <tr>
+                    <th>
+                        <input
+                            type="text"
+                            name="row_name_{{ i }}"
+                            class="row-header"
+                            data-index="{{ i }}"
+                            value="{{ names[i] }}"
+                        >
+                    </th>
+                    {% for j in range(n) %}
+                    <td>
+                        <input
+                            type="number"
+                            class ="cell"
+                            name="cell_{{ i }}_{{ j }}"
+                            min="0"
+                            value="{{ matrix[i][j] if matrix else '' }}"
+                        >
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+            <button type="submit">Submit</button>
+        </form>
+
+        
+
+  {% if result %}
+  <h2>Final Reduced Matrix</h2>
+  <table class="result">
+    {% for row in result %}
+    <tr>
+      {% for val in row %}
+      <td>{{ val|int if val else '-' }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+{% endif %}
+
+    </div>
+
+
+    <div id="sidebar">
+        <button class="toggle-btn" id="sidebarToggle">&lt;</button>
+        {% if sidebar %}
+          {% for step, mat in sidebar.items() %}
+            <h3>{{ step }}</h3>
+            <table class="result">
+              {% for row in mat %}
+              <tr>
+                {% for val in row %}
+                <td>{{ val|int if val else '-' }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </table>
+          {% endfor %}
+        {% endif %}
+      </div>
+      
+
+
+    <script>
+    // On focus clear placeholder
+    document.querySelectorAll('.cell, .row-header, .col-header').forEach(el => {
+      const init = el.value;
+      el.addEventListener('focus', () => {
+        if (el.value === init) el.value = '';
+      });
+    });
+
+    // Clear on focus and restore on blur if left empty
+    document.querySelectorAll('.cell, .row-header').forEach(el => {
+    const init = el.value;
+    el.addEventListener('focus', () => {
+        if (el.value === init) el.value = '';
+    });
+    el.addEventListener('blur', () => {
+        if (el.value.trim() === '') el.value = init;
+    });
+    });
+
+    // Sync row → column
+    document.querySelectorAll('.row-header').forEach(el => {
+      el.addEventListener('input', () => {
+        const idx = el.dataset.index;
+        document.querySelector(`.col-header[data-index="${idx}"]`).value = el.value;
+      });
+    });
+
+    // Sync column → row (optional, if you want two-way)
+    document.querySelectorAll('.col-header').forEach(el => {
+      el.addEventListener('input', () => {
+        const idx = el.dataset.index;
+        document.querySelector(`.row-header[data-index="${idx}"]`).value = el.value;
+      });
+    });
+
+
+    
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '›' : '<';
+  });
+    </script>
+</body>
+</html>

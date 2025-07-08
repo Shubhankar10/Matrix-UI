@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dynamic Columns & Rows</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    header { display: flex; justify-content: space-between; align-items: center; }
+    table { border-collapse: collapse; margin-top: 1em; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+    input[type="number"] { width: 4em; }
+    input[readonly]    { background: #f0f0f0; }
+    th input { width: 6em; }
+    #addRowBtn, #addColBtn { margin-top: 0.5em; }
+    .detail-row td { background: #f9f9f9; }
+    button.all-btn, button.clear-btn { padding: 0.2em 0.5em; margin: 0 0.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <label>
+        Number of Columns:
+        <input id="sizeInput" type="number" min="1" value="3">
+      </label>
+    </div>
+    <button type="button" id="addColBtn">Add Column</button>
+  </header>
+
+  <form id="gridForm" method="POST" action="/submit">
+    <input type="hidden" name="size" id="sizeField" value="3">
+    <input type="hidden" name="row_count" id="rowCountField" value="1">
+
+    <table id="dataTable"></table>
+
+    <button type="button" id="addRowBtn">Add Row</button>
+    &nbsp;&nbsp;
+    <button type="submit">Submit</button>
+  </form>
+
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+  <!-- Checks before sumbit  -->
+
+  
+  <script>
+    document.getElementById("gridForm").addEventListener("submit", function(e) {
+      // 1) Any row with amount‑left > 0?
+      const leftDivs = document.querySelectorAll(".amount-left");
+      for (const div of leftDivs) {
+        const left = parseFloat(div.textContent.replace(/[^0-9.]/g, "")) || 0;
+        if (left > 0) {
+          alert("Please fully allocate every row's amount (no 'amount left').");
+          e.preventDefault();
+          return;
+        }
+      }
+      // 2) Any row with zero checked boxes?
+      const rowCount = parseInt(document.getElementById("rowCountField").value, 10);
+      const size     = parseInt(document.getElementById("sizeField").value, 10);
+      for (let i = 1; i <= rowCount; i++) {
+        // count checkboxes
+        let checked = 0;
+        for (let j = 1; j <= size; j++) {
+          if (document.querySelector(`[name="chk_${i}_${j}"]`)?.checked) {
+            checked++;
+          }
+        }
+        if (checked === 0) {
+          alert(`Row ${i} has no boxes checked. Please check at least one.`);
+          e.preventDefault();
+          return;
+        }
+      }
+      // if we get here, all good -> form submits
+    });
+  </script>
+</body>
+</html>
