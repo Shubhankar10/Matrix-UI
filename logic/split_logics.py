@@ -2,7 +2,6 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from copy import deepcopy
 
 # FOR GRAPH 
 def build_graph(matrix, labels):
@@ -17,27 +16,32 @@ def build_graph(matrix, labels):
     return G
 
 def print_graph(matrix, labels, title):
-    """Draw the directed graph with curved edges and weights."""
     G = build_graph(matrix, labels)
-    pos = nx.spring_layout(G, seed=42)
+    pos = nx.circular_layout(G)  # fixed-radius, evenly spaced around a circle
+
+
     plt.figure(figsize=(6, 6))
-    nx.draw_networkx_nodes(G, pos, node_size=700)
+    nx.draw_networkx_nodes(G, pos, node_size=2500)  # node circles
     nx.draw_networkx_labels(G, pos)
+    
     nx.draw_networkx_edges(
         G, pos,
-        arrowstyle='->', arrowsize=20,
-        connectionstyle='arc3, rad=0.2'
+        arrowstyle='->', arrowsize=25,
+        connectionstyle='arc3, rad=0.2',
+        width=2.5,
+        min_target_margin=25         # Adds margin so arrows stop outside the node
     )
     edge_labels = {(u, v): f"{data['weight']:.0f}"
                    for u, v, data in G.edges(data=True)}
     nx.draw_networkx_edge_labels(
         G, pos, edge_labels=edge_labels,
         font_size=10, rotate=False,
-        bbox=dict(facecolor='white', edgecolor='none', pad=0.3)
+        bbox=dict(facecolor='white', edgecolor='none', pad=0.1)
     )
+
     plt.title(title)
     plt.axis('off')
-    # plt.show()
+    plt.show()
 
 
 # FOR PRINTS 
@@ -59,7 +63,6 @@ def print_balance(matrix, labels):
     # print()
     lines.append("")
     return lines
-
 
 def print_matrix(matrix, labels, step_name):
     lines = []
@@ -121,7 +124,6 @@ def print_matrix_and_balance_side_by_side(matrix, labels, step_name):
     for m_line, b_line in zip(formatted_matrix_lines, balance_lines):
         print(f"{m_line:<{max_label_len + col_width * len(labels) + 2}}{gap}{b_line}")
 
-
 def print_settlement_summary(M, labels):
     """Prints settlement steps from the matrix M."""
     step = 1
@@ -131,7 +133,7 @@ def print_settlement_summary(M, labels):
                 print(f"Step {step}: {labels[i]} pays {labels[j]} → {M[i, j]:.0f}")
                 step += 1
 
-# LOGIC 1 : GREEDY
+# LOGIC : GENERAL
 def remove_self_loops(matrix):
     M = matrix.copy()
     np.fill_diagonal(M, 0)
@@ -154,6 +156,8 @@ def reduce_bidirectional(matrix,labels):
                     M[i,j]  = 0
     return M
 
+
+# LOGIC 1 : GREEDY
 def settle_greedy(matrix, labels):
     """
     Greedy settlement:
@@ -199,7 +203,6 @@ def settle_greedy(matrix, labels):
 
 
 #LOGIC 2 : Hub
-
 def reduce_to_tree(M, labels):
     """
     Reduce a settlement matrix to a minimal tree:
@@ -231,6 +234,7 @@ def reduce_to_tree(M, labels):
             M_new[i, hub_idx] = -amount
 
     return M_new
+
 
 #LOGIC # : Tree
 def settle_on_tree(matrix, labels):
@@ -282,28 +286,38 @@ def process_matrix(mat, labels):
     print_matrix_and_balance_side_by_side(mat2, labels, "Step 2: Cancel Bidirectional Flows ")
 
     
-    # mat3 = reduce_to_tree(mat2,labels)
+
+    # Change funciton based on logic
+
+
+    mat3 = reduce_to_tree(mat2,labels)
     # mat3 = settle_on_tree(mat2,labels)
-    mat3 = settle_greedy(mat2, labels)
+    # mat3 = settle_greedy(mat2, labels)
     print_matrix_and_balance_side_by_side(mat3, labels, "Step 3: Greedy Recursive Settlement ")
     
     print_settlement_summary(mat3, labels)
+    print_graph(mat3,labels,"Graph")
     return mat3
 
-def main():
-    lab = [
-        'Rujhil',	'Jay',	'Bobby',	'Avikalp',	'Sneha',	'Ashwini'
-    ]
-    mat = np.array([
-    [  0.,  90.,  52.,   0.,   0.,   0.],
-    [  0., 154., 135.,   0.,   0.,   0.],
-    [  0.,  94., 235.,   0.,   0.,   0.],
-    [  0.,  44., 219.,  16.,   0.,   0.],
-    [  0.,  94., 166.,  16.,   0.,   0.],
-    [  0.,  74.,  50.,  16.,   0.,   0.]], dtype=float)
 
-    process_matrix(mat,lab)
-    return 0
 
-if __name__ == '__main__':
-    main()
+
+
+
+lab = [
+    'Rujhil',	'Jay',	'Bobby',	'Avikalp',	'Sneha',	'Ashwini'
+]
+mat = np.array([
+[  0.,  90.,  52.,   0.,   0.,   0.],
+[  0., 154., 135.,   0.,   0.,   0.],
+[  0.,  94., 235.,   0.,   0.,   0.],
+[  0.,  44., 219.,  16.,   0.,   0.],
+[  0.,  94., 166.,  16.,   0.,   0.],
+[  0.,  74.,  50.,  16.,   0.,   0.]], dtype=float)
+
+
+
+
+
+
+process_matrix(mat,lab)
