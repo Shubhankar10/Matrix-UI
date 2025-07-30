@@ -1,5 +1,6 @@
+# routes.py
 from flask import Blueprint, render_template, request
-from ops import parse_form, print_split_matrix
+from ops import parse_form
 
 bp = Blueprint("main", __name__)
 
@@ -7,17 +8,31 @@ bp = Blueprint("main", __name__)
 def index():
     return render_template("index.html")
 
-@bp.route("/submit", methods=["POST"])
-def submit():
+@bp.route("/matrix", methods=["POST"])
+def matrix_view():
+    # Parse form data into rows and column names
     size, colnames, rows = parse_form(request.form)
 
-    print("=== Submitted Table ===")
-    for idx, r in enumerate(rows, start=1):
-        print(f"Row {idx}: {r}")
-    print("=======================")
+    # Compute the settlement matrix
+    name_to_idx = {name: i for i, name in enumerate(colnames)}
+    n = len(colnames)
+    matrix = [[0.0] * n for _ in range(n)]
+    for entry in rows:
+        payer = entry["paid_by"]
+        if payer not in name_to_idx:
+            continue
+        pc = name_to_idx[payer]
+        for owe_name, amt in entry["checked_map"].items():
+            if owe_name not in name_to_idx:
+                continue
+            orow = name_to_idx[owe_name]
+            if orow == pc:
+                continue
+            matrix[orow][pc] += amt
 
-    print("=== Settlement Matrix ===")
-    print_split_matrix(rows, colnames)
-    print("=========================")
-
-    return "<h2>Data received! Check your console.</h2>"
+    # Render the matrix template
+    return render_template(
+        "matrix.html",
+        colnames=colnames,
+        matrix=matrix
+    )

@@ -27,7 +27,7 @@
     <button type="button" id="addColBtn">Add Column</button>
   </header>
 
-  <form id="gridForm" method="POST" action="/submit">
+  <form id="gridForm" method="POST" action="/matrix">
     <input type="hidden" name="size" id="sizeField" value="3">
     <input type="hidden" name="row_count" id="rowCountField" value="1">
 
@@ -38,15 +38,10 @@
     <button type="submit">Submit</button>
   </form>
 
-
   <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-  <!-- Checks before sumbit  -->
-
-  
   <script>
     document.getElementById("gridForm").addEventListener("submit", function(e) {
-      // 1) Any row with amount‑left > 0?
+      // validation as before
       const leftDivs = document.querySelectorAll(".amount-left");
       for (const div of leftDivs) {
         const left = parseFloat(div.textContent.replace(/[^0-9.]/g, "")) || 0;
@@ -56,11 +51,9 @@
           return;
         }
       }
-      // 2) Any row with zero checked boxes?
       const rowCount = parseInt(document.getElementById("rowCountField").value, 10);
       const size     = parseInt(document.getElementById("sizeField").value, 10);
       for (let i = 1; i <= rowCount; i++) {
-        // count checkboxes
         let checked = 0;
         for (let j = 1; j <= size; j++) {
           if (document.querySelector(`[name="chk_${i}_${j}"]`)?.checked) {
@@ -73,8 +66,9 @@
           return;
         }
       }
-      // if we get here, all good -> form submits
+      // if validation passes, normal POST to /matrix
     });
   </script>
+
 </body>
 </html>

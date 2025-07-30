@@ -265,8 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) || 0;
     const on     = document.querySelector(`[name="toggle_${i}"]`).checked;
     const n      = parseInt(sizeInput.value, 10) || 1;
-
-    // gather checked indices
+d
     const checked = [];
     document.querySelectorAll(`tr.data-row[data-row="${i}"] input[name^="chk_${i}_"]`)
       .forEach(cb => {
