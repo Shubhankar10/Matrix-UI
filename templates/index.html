@@ -1,133 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Matrix Input</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="utf-8">
+  <title>Matrix UI</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    header { display: flex; justify-content: space-between; align-items: center; }
+    table { border-collapse: collapse; margin-top: 1em; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+    input[type="number"] { width: 4em; }
+    input[readonly]    { background: #f0f0f0; }
+    th input { width: 6em; }
+    #addRowBtn, #addColBtn { margin-top: 0.5em; }
+    .detail-row td { background: #f9f9f9; }
+    button.all-btn, button.clear-btn { padding: 0.2em 0.5em; margin: 0 0.2em; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Enter {{ n }}×{{ n }} Matrix</h1>
-        <form method="post" action="/">
-            <table>
-                  <!-- Top header row -->
-                  <tr>
-                    <th></th>
-                    {% for i in range(n) %}
-                    <th>{{ names[i] }}</th>
-                    {% endfor %}
-                </tr>
-                <!-- Matrix rows -->
-                {% for i in range(n) %}
-                <tr>
-                    <th>
-                        <input
-                            type="text"
-                            name="row_name_{{ i }}"
-                            class="row-header"
-                            data-index="{{ i }}"
-                            value="{{ names[i] }}"
-                        >
-                    </th>
-                    {% for j in range(n) %}
-                    <td>
-                        <input
-                            type="number"
-                            class ="cell"
-                            name="cell_{{ i }}_{{ j }}"
-                            min="0"
-                            value="{{ matrix[i][j] if matrix else '' }}"
-                        >
-                    </td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </table>
-            <button type="submit">Submit</button>
-        </form>
 
-        
-
-  {% if result %}
-  <h2>Final Reduced Matrix</h2>
-  <table class="result">
-    {% for row in result %}
-    <tr>
-      {% for val in row %}
-      <td>{{ val|int if val else '-' }}</td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </table>
-{% endif %}
-
+  
+  <header>
+    <div>
+      <label>
+        Number of Columns:
+        <input id="sizeInput" type="number" min="1" value="3">
+      </label>
     </div>
+    <button type="button" id="addColBtn">Add Column</button>
+  </header>
 
+  <form id="gridForm" method="POST" action="/matrix">
+    <input type="hidden" name="size" id="sizeField" value="3">
+    <input type="hidden" name="row_count" id="rowCountField" value="1">
 
-    <div id="sidebar">
-        <button class="toggle-btn" id="sidebarToggle">&lt;</button>
-        {% if sidebar %}
-          {% for step, mat in sidebar.items() %}
-            <h3>{{ step }}</h3>
-            <table class="result">
-              {% for row in mat %}
-              <tr>
-                {% for val in row %}
-                <td>{{ val|int if val else '-' }}</td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </table>
-          {% endfor %}
-        {% endif %}
-      </div>
-      
+    <table id="dataTable"></table>
 
+    <button type="button" id="addRowBtn">Add Row</button>
+    &nbsp;&nbsp;
+    <button type="submit">Submit</button>
+  </form>
 
-    <script>
-    // On focus clear placeholder
-    document.querySelectorAll('.cell, .row-header, .col-header').forEach(el => {
-      const init = el.value;
-      el.addEventListener('focus', () => {
-        if (el.value === init) el.value = '';
-      });
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    document.getElementById("gridForm").addEventListener("submit", function(e) {
+      // validation as before
+      const leftDivs = document.querySelectorAll(".amount-left");
+      for (const div of leftDivs) {
+        const left = parseFloat(div.textContent.replace(/[^0-9.]/g, "")) || 0;
+        if (left > 0) {
+          alert("Please fully allocate every row's amount (no 'amount left').");
+          e.preventDefault();
+          return;
+        }
+      }
+      const rowCount = parseInt(document.getElementById("rowCountField").value, 10);
+      const size     = parseInt(document.getElementById("sizeField").value, 10);
+      for (let i = 1; i <= rowCount; i++) {
+        let checked = 0;
+        for (let j = 1; j <= size; j++) {
+          if (document.querySelector(`[name="chk_${i}_${j}"]`)?.checked) {
+            checked++;
+          }
+        }
+        if (checked === 0) {
+          alert(`Row ${i} has no boxes checked. Please check at least one.`);
+          e.preventDefault();
+          return;
+        }
+      }
+      // if validation passes, normal POST to /matrix
     });
+  </script>
 
-    // Clear on focus and restore on blur if left empty
-    document.querySelectorAll('.cell, .row-header').forEach(el => {
-    const init = el.value;
-    el.addEventListener('focus', () => {
-        if (el.value === init) el.value = '';
-    });
-    el.addEventListener('blur', () => {
-        if (el.value.trim() === '') el.value = init;
-    });
-    });
-
-    // Sync row → column
-    document.querySelectorAll('.row-header').forEach(el => {
-      el.addEventListener('input', () => {
-        const idx = el.dataset.index;
-        document.querySelector(`.col-header[data-index="${idx}"]`).value = el.value;
-      });
-    });
-
-    // Sync column → row (optional, if you want two-way)
-    document.querySelectorAll('.col-header').forEach(el => {
-      el.addEventListener('input', () => {
-        const idx = el.dataset.index;
-        document.querySelector(`.row-header[data-index="${idx}"]`).value = el.value;
-      });
-    });
-
-
-    
-  const sidebar = document.getElementById('sidebar');
-  const toggleBtn = document.getElementById('sidebarToggle');
-  toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-    toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '›' : '<';
-  });
-    </script>
 </body>
 </html>

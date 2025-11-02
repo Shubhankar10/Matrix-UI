@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 # GET JSON DATA
-with open('input_matrix\Dataclass\min_transaction.json', 'r') as file:
+with open('Dataclass\min_transaction.json', 'r') as file:
     data = json.load(file)
 
 
