@@ -12,7 +12,9 @@ def index():
 def matrix_view():
     # Parse form data into rows and column names
     size, colnames, rows = parse_form(request.form)
-
+    print("Parsed Rows:")   
+    for r in rows:
+        print(r)
     # Compute the settlement matrix
     name_to_idx = {name: i for i, name in enumerate(colnames)}
     n = len(colnames)
@@ -29,8 +31,11 @@ def matrix_view():
             if orow == pc:
                 continue
             matrix[orow][pc] += amt
+    print("Name to Index Mapping:")
+    print(name_to_idx)
 
     # Render the matrix template
+    print(matrix)
     return render_template(
         "matrix.html",
         colnames=colnames,

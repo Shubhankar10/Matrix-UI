@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-
+PRINT_GRAPH = False
 
 # FOR GRAPH 
 def build_graph(matrix, labels):
@@ -125,13 +125,13 @@ def print_matrix_and_balance_side_by_side(matrix, labels, step_name):
         print(f"{m_line:<{max_label_len + col_width * len(labels) + 2}}{gap}{b_line}")
 
 def print_settlement_summary(M, labels):
-    """Prints settlement steps from the matrix M."""
     step = 1
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             if M[i, j] > 0:
-                print(f"Step {step}: {labels[i]} pays {labels[j]} → {M[i, j]:.0f}")
+                print(f"{step}: {labels[i]} pays {labels[j]} → {M[i, j]:.0f}")
                 step += 1
+    return step
 
 # LOGIC : GENERAL
 def remove_self_loops(matrix):
@@ -236,7 +236,7 @@ def reduce_to_tree(M, labels):
     return M_new
 
 
-#LOGIC # : Tree
+#LOGIC 3 : Tree
 def settle_on_tree(matrix, labels):
     net = np.sum(matrix, axis=1) - np.sum(matrix, axis=0)
     net_map = {i: net[i] for i in range(len(net)) if net[i] != 0}
@@ -279,45 +279,60 @@ def settle_on_tree(matrix, labels):
 
 
 def process_matrix(mat, labels):
+    
+    
     print_matrix_and_balance_side_by_side(mat, labels, "Original Matrix ")
-    mat1 = remove_self_loops(mat)
+    mat1 = remove_self_loops(mat)   
+    if PRINT_GRAPH:
+        print_graph(mat1,labels,"Graph")
+
+
     print_matrix_and_balance_side_by_side(mat1, labels, "Step 1: Remove Self-Loops ")
     mat2 = reduce_bidirectional(mat1, labels)
+    if PRINT_GRAPH:
+        print_graph(mat2,labels,"Graph")
+
     print_matrix_and_balance_side_by_side(mat2, labels, "Step 2: Cancel Bidirectional Flows ")
 
-    
 
     # Change funciton based on logic
 
 
-    mat3 = reduce_to_tree(mat2,labels)
-    # mat3 = settle_on_tree(mat2,labels)
-    # mat3 = settle_greedy(mat2, labels)
+    # mat3 = reduce_to_tree(mat2,labels)
+    # mat3 = settle_on_tree(mat2,labels) #Useless
+    mat3 = settle_greedy(mat2, labels)
     print_matrix_and_balance_side_by_side(mat3, labels, "Step 3: Greedy Recursive Settlement ")
     
     print_settlement_summary(mat3, labels)
-    print_graph(mat3,labels,"Graph")
+    if PRINT_GRAPH:
+        print_graph(mat3,labels,"Graph")
     return mat3
 
 
 
 
+if __name__ == "__main__":
 
+    lab = [
+        'Rujhil', 'Shubhankar', 'Bobby', 'Avikalp',
+        'Sneha', 'Ashwini', 'Satyam', 'Yash', 'Neeraj'
+    ]
 
-lab = [
-    'Rujhil',	'Jay',	'Bobby',	'Avikalp',	'Sneha',	'Ashwini'
-]
-mat = np.array([
-[  0.,  90.,  52.,   0.,   0.,   0.],
-[  0., 154., 135.,   0.,   0.,   0.],
-[  0.,  94., 235.,   0.,   0.,   0.],
-[  0.,  44., 219.,  16.,   0.,   0.],
-[  0.,  94., 166.,  16.,   0.,   0.],
-[  0.,  74.,  50.,  16.,   0.,   0.]], dtype=float)
+    mat = np.array([
+        [  60, 188,  93,   0,   0,   0,   0,   0,   126],
+        [ 100,   0,  92,   0,   0,   0,   24,   0,   0],
+        [ 100,   0,  92,   0,   0,   0,   24,   0,   0],
+        [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+        [ 100, 150,  93,   0,   0,   0,   24,   0,   0],
+        [ 200,  80,   0,   0,   0,   0,   24,   0,   126],
+        [ 100,  60,   0,   0,   0,   0,   24,   0,   0],
+        [ 100, 109,   0,   0,   0,   0,   24,   0,   0],
+        [ 100,   0,   0,   0,   0,   0,   24,   0,   0]
+    ], dtype=float)
 
+    # mat = mat.T
 
+    print(mat)
 
+    process_matrix(mat,lab)
 
-
-
-process_matrix(mat,lab)

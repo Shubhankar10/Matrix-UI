@@ -19,14 +19,15 @@ def index():
         names   = build_names(request.form, default_names)
         matrix  = build_matrix(request.form, n)
         mats    = process_pipeline(matrix, names)
-        result  = mats["Final Matrix"].tolist()
-        sidebar = {k: v.tolist() for k, v in mats.items() if k != "Final Matrix"}
+        # print(mats["Final Matrix"])
+        # result  = list(mats["Final Matrix"])
+        # sidebar = {k: v.tolist() for k, v in mats.items() if k != "Final Matrix"}
 
     return render_template(
         "index.html",
         n=n,
         matrix=matrix.tolist(),
         names=names,
-        result=result,
-        sidebar=sidebar
+        result=[],
+        # sidebar=sidebar
     )

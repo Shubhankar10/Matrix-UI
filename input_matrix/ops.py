@@ -23,6 +23,7 @@ def parse_form(form):
                     detail_map[cname] = float(val)
                 except ValueError:
                     pass
+        print("Detail Map:", detail_map)
 
         total_specified = sum(detail_map.values())
         unspecified_count = len(checked_names) - len(detail_map)

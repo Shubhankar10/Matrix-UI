@@ -16,28 +16,28 @@ def build_graph(matrix, labels):
                 G.add_edge(u, v, weight=w)
     return G
 
-def print_graph(matrix, labels, title):
-    """Draw the directed graph with curved edges and weights."""
-    G = build_graph(matrix, labels)
-    pos = nx.spring_layout(G, seed=42)
-    plt.figure(figsize=(6, 6))
-    nx.draw_networkx_nodes(G, pos, node_size=700)
-    nx.draw_networkx_labels(G, pos)
-    nx.draw_networkx_edges(
-        G, pos,
-        arrowstyle='->', arrowsize=20,
-        connectionstyle='arc3, rad=0.2'
-    )
-    edge_labels = {(u, v): f"{data['weight']:.0f}"
-                   for u, v, data in G.edges(data=True)}
-    nx.draw_networkx_edge_labels(
-        G, pos, edge_labels=edge_labels,
-        font_size=10, rotate=False,
-        bbox=dict(facecolor='white', edgecolor='none', pad=0.3)
-    )
-    plt.title(title)
-    plt.axis('off')
-    # plt.show()
+# def print_graph(matrix, labels, title):
+#     """Draw the directed graph with curved edges and weights."""
+#     G = build_graph(matrix, labels)
+#     pos = nx.spring_layout(G, seed=42)
+#     plt.figure(figsize=(6, 6))
+#     nx.draw_networkx_nodes(G, pos, node_size=700)
+#     nx.draw_networkx_labels(G, pos)
+#     nx.draw_networkx_edges(
+#         G, pos,
+#         arrowstyle='->', arrowsize=20,
+#         connectionstyle='arc3, rad=0.2'
+#     )
+#     edge_labels = {(u, v): f"{data['weight']:.0f}"
+#                    for u, v, data in G.edges(data=True)}
+#     nx.draw_networkx_edge_labels(
+#         G, pos, edge_labels=edge_labels,
+#         font_size=10, rotate=False,
+#         bbox=dict(facecolor='white', edgecolor='none', pad=0.3)
+#     )
+#     plt.title(title)
+#     plt.axis('off')
+#     # plt.show()
 
 
 # FOR PRINTS 
@@ -291,16 +291,26 @@ def process_matrix(mat, labels):
     return mat3
 
 def main():
+    
     lab = [
-        'Rujhil',	'Jay',	'Bobby',	'Avikalp',	'Sneha',	'Ashwini'
+        'Rujhil', 'Shubhankar', 'Bobby', 'Avikalp', 'Sneha', 
+        'Ashwini', 'Satyam', 'Yash', 'Mayuri', 'Heeram', 'Shrishti'
     ]
+
     mat = np.array([
-    [  0.,  90.,  52.,   0.,   0.,   0.],
-    [  0., 154., 135.,   0.,   0.,   0.],
-    [  0.,  94., 235.,   0.,   0.,   0.],
-    [  0.,  44., 219.,  16.,   0.,   0.],
-    [  0.,  94., 166.,  16.,   0.,   0.],
-    [  0.,  74.,  50.,  16.,   0.,   0.]], dtype=float)
+        [17,   0, 268, 249,   0,   0,   0,   0,   0,   0,   0],
+        [17, 110,   13, 577,   0,   0,   0,   0,   0,   0,   0],
+        [17, 132,  60, 688,   0,   0,   0,   0,   0,   0,   0],
+        [17, 1244,  60,  52,   0,   0,   0,   0,   0,   0,   0],
+        [17,   0,   13, 152,   0,   0,   0,   0,   0,   0,   0],
+        [17,   0,   13, 271,   0,   0,   0,   0,   0,   0,   0],
+        [ 0,  43, 265, 382,   0,   0,   0,   0,   0,   0,   0],
+        [17,  43,   13,  52,   0,   0,   0,   0,   0,   0,   0],
+        [ 0,   0,   0,  52,   0,   0,   0,   0,   0,   0,   0],
+        [ 0,   0,   0,  52,   0,   0,   0,   0,   0,   0,   0],
+        [ 0,   0,   0,  52,   0,   0,   0,   0,   0,   0,   0]
+    ], dtype=float)
+
 
     process_matrix(mat,lab)
     return 0
