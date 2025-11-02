@@ -40,7 +40,6 @@ class MoneySplit:
 
 
 def parse_initial_input(input_json: dict) -> MoneySplit:
-    print("Parsing initial input...")
     ms = MoneySplit()
     ms.name_count = input_json.get("name_count")
     ms.names = input_json.get("names", [])
@@ -91,8 +90,6 @@ def compute_allocations(ms):
     - Prints progress and final summary.
     - Returns the updated MoneySplit instance.
     """
-    print("Computing allocations...")
-
     # reset participant totals and transactions to ensure idempotency
     for pname, p in ms.names_map.items():
         p.total_paid = 0.0
@@ -199,9 +196,9 @@ def compute_allocations(ms):
         payer_participant = ms.names_map.get(paid_by)
         payer_participant.total_paid = (payer_participant.total_paid or 0.0) + float(total_amount)
 
-        print(f"Processed transaction '{title}': paid_by={paid_by}, total_amount={total_amount}")
-        for n in checked_names:
-            print(f"  {n} -> {checked_map.get(n, 0.0):.2f}")
+        # print(f"Processed transaction '{title}': paid_by={paid_by}, total_amount={total_amount}")
+        # for n in checked_names:
+        #     print(f"  {n} -> {checked_map.get(n, 0.0):.2f}")
 
     # After processing all transactions compute net balances
     for pname, participant in ms.names_map.items():
@@ -247,8 +244,6 @@ def compute_allocations(ms):
 
 
 def print_settlement_matrix(ms: MoneySplit):
-    print("Matrix.")
-
     colnames = ms.names
     name_to_idx = {name: i for i, name in enumerate(colnames)}
     n = len(colnames)
@@ -272,13 +267,13 @@ def print_settlement_matrix(ms: MoneySplit):
             matrix[orow][pc] += amt
 
     # Print matrix header
-    header = ["Send To"] + colnames
-    print("\t".join(header))
+    # header = ["Send To"] + colnames
+    # print("\t".join(header))
     
-    # Print each row
-    for i, row_name in enumerate(colnames):
-        row_values = [f"{matrix[i][j]:.2f}" for j in range(n)]
-        print(f"{row_name}\t" + "\t".join(row_values))
+    # # Print each row
+    # for i, row_name in enumerate(colnames):
+    #     row_values = [f"{matrix[i][j]:.2f}" for j in range(n)]
+    #     print(f"{row_name}\t" + "\t".join(row_values))
 
     return matrix,name_to_idx
 

@@ -3,6 +3,11 @@ from logic.split_logics import process_matrix
 import json
 import numpy as np
 
+
+
+"""
+Make a JSON for Transactions in the format and place it in Dataclass/min_transaction.json
+"""
 # GET JSON DATA
 with open('Dataclass\min_transaction.json', 'r') as file:
     data = json.load(file)

@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 PRINT_GRAPH = False
+PRINT_LOGS = False
 
 # FOR GRAPH 
 def build_graph(matrix, labels):
@@ -125,6 +126,7 @@ def print_matrix_and_balance_side_by_side(matrix, labels, step_name):
         print(f"{m_line:<{max_label_len + col_width * len(labels) + 2}}{gap}{b_line}")
 
 def print_settlement_summary(M, labels):
+    print("\n=== Settlement Summary ===")
     step = 1
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
@@ -147,7 +149,8 @@ def reduce_bidirectional(matrix,labels):
             a, b = M[i,j], M[j,i]
             if a and b:
                 delta = min(a, b)
-                print(f"Cancelling {delta:.0f} between {labels[i]}↔{labels[j]}")
+                if PRINT_LOGS:
+                    print(f"Cancelling {delta:.0f} between {labels[i]}↔{labels[j]}")
                 if a > b:
                     M[i,j] -= delta
                     M[j,i]  = 0
@@ -281,18 +284,22 @@ def settle_on_tree(matrix, labels):
 def process_matrix(mat, labels):
     
     
-    print_matrix_and_balance_side_by_side(mat, labels, "Original Matrix ")
+    if PRINT_LOGS:
+        print_matrix_and_balance_side_by_side(mat, labels, "Original Matrix ")
+
+
     mat1 = remove_self_loops(mat)   
     if PRINT_GRAPH:
         print_graph(mat1,labels,"Graph")
+    if PRINT_LOGS:
+        print_matrix_and_balance_side_by_side(mat1, labels, "Step 1: Remove Self-Loops ")
 
 
-    print_matrix_and_balance_side_by_side(mat1, labels, "Step 1: Remove Self-Loops ")
     mat2 = reduce_bidirectional(mat1, labels)
     if PRINT_GRAPH:
         print_graph(mat2,labels,"Graph")
-
-    print_matrix_and_balance_side_by_side(mat2, labels, "Step 2: Cancel Bidirectional Flows ")
+    if PRINT_LOGS:
+        print_matrix_and_balance_side_by_side(mat2, labels, "Step 2: Cancel Bidirectional Flows ")
 
 
     # Change funciton based on logic
@@ -301,11 +308,13 @@ def process_matrix(mat, labels):
     # mat3 = reduce_to_tree(mat2,labels)
     # mat3 = settle_on_tree(mat2,labels) #Useless
     mat3 = settle_greedy(mat2, labels)
-    print_matrix_and_balance_side_by_side(mat3, labels, "Step 3: Greedy Recursive Settlement ")
-    
-    print_settlement_summary(mat3, labels)
+    if PRINT_LOGS:
+        print_matrix_and_balance_side_by_side(mat3, labels, "Step 3: Greedy Recursive Settlement ")
     if PRINT_GRAPH:
         print_graph(mat3,labels,"Graph")
+
+
+    print_settlement_summary(mat3, labels)
     return mat3
 
 
