@@ -7,7 +7,8 @@
       "amount": 120.0,
       "paid_by": "Alice",
       "even_split": true,
-      "checked_names": ["Alice", "Bob", "Charlie"]
+      "checked_names": ["Alice", "Bob", "Charlie"],
+      "category": "Food"
     },
     {
       "title": "Snacks",
@@ -15,7 +16,8 @@
       "paid_by": "Bob",
       "even_split": false,
       "checked_names": ["Alice", "Bob", "Charlie"],
-      "detail_map": {
+      "category": "Food",
+      "uneven_split_map": {
         "Alice": 50,
         "Charlie": 20
       }

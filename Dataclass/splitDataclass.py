@@ -72,6 +72,167 @@ def parse_initial_input(input_json: dict) -> MoneySplit:
     # print(json.dumps(asdict(ms), indent=2))
     return ms
 
+def new_compute_allocations(ms):
+    """Compute allocations for MoneySplit (modular version)."""
+    def reset_participants(ms):
+        for p in ms.names_map.values():
+            p.total_paid = 0.0
+            p.total_owed = 0.0
+            p.net_balance = 0.0
+            p.transactions = []
+
+    def normalize_transaction(raw_tx):
+        """Return unified dict of transaction attributes, regardless of input type."""
+        if isinstance(raw_tx, dict):
+            return dict(
+                title=raw_tx.get("title"),
+                total_amount=raw_tx.get("total_amount", raw_tx.get("amount")),
+                paid_by=raw_tx.get("paid_by"),
+                checked_names=raw_tx.get("checked_names", []) or [],
+                even_split=raw_tx.get("even_split", raw_tx.get("toggle", True)),
+                detail_map=raw_tx.get("detail_map", raw_tx.get("uneven_split_map", {})) or {},
+                raw_ref=raw_tx,
+                is_dict=True
+            )
+        else:
+            return dict(
+                title=getattr(raw_tx, "title", None),
+                total_amount=getattr(raw_tx, "amount", None),
+                paid_by=getattr(raw_tx, "paid_by", None),
+                checked_names=getattr(raw_tx, "checked_names", []) or [],
+                even_split=getattr(raw_tx, "even_split", getattr(raw_tx, "toggle", True)),
+                detail_map=getattr(raw_tx, "detail_map", getattr(raw_tx, "uneven_split_map", {})) or {},
+                raw_ref=raw_tx,
+                is_dict=False
+            )
+
+    def skip_invalid(tx_info):
+        """Return True if transaction should be skipped, setting defaults."""
+        if not tx_info["checked_names"] or tx_info["total_amount"] is None or tx_info["paid_by"] is None:
+            print(f"Skipping transaction '{tx_info['title']}' because of missing fields.")
+            set_default_fields(tx_info)
+            return True
+        if tx_info["paid_by"] not in ms.names_map:
+            print(f"Skipping transaction '{tx_info['title']}': payer '{tx_info['paid_by']}' not in participants.")
+            set_default_fields(tx_info)
+            return True
+        return False
+
+    def set_default_fields(tx_info):
+        """Ensure transaction has default checked_map and avg fields."""
+        raw_tx = tx_info["raw_ref"]
+        if tx_info["is_dict"]:
+            raw_tx.setdefault("checked_map", {})
+            raw_tx.setdefault("avg", None)
+        else:
+            raw_tx.checked_map = getattr(raw_tx, "checked_map", {})
+            raw_tx.avg = getattr(raw_tx, "avg", None)
+
+    def compute_checked_map(tx_info):
+        """Compute checked_map and avg depending on even_split."""
+        checked_names = tx_info["checked_names"]
+        total_amount = tx_info["total_amount"]
+        detail_map = tx_info["detail_map"]
+        even_split = tx_info["even_split"]
+
+        checked_map = {}
+        avg_unspecified = None
+        print("even_split:", even_split)
+
+        if even_split:
+            share = total_amount / len(checked_names) if checked_names else 0.0
+            checked_map = {n: share for n in checked_names}
+            avg_unspecified = share
+        else:
+            total_specified = sum(detail_map.values()) if detail_map else 0.0
+            unspecified_names = [n for n in checked_names if n not in detail_map]
+            unspecified_count = len(unspecified_names)
+            avg_unspecified = (total_amount - total_specified) / unspecified_count if unspecified_count > 0 else 0.0
+            for n in checked_names:
+                checked_map[n] = detail_map.get(n, avg_unspecified)
+        return checked_map, avg_unspecified
+
+    def store_checked_map(tx_info, checked_map, avg_unspecified):
+        """Write computed values back into the transaction object."""
+        raw_tx = tx_info["raw_ref"]
+        if tx_info["is_dict"]:
+            raw_tx["checked_map"] = checked_map
+            raw_tx["avg"] = avg_unspecified
+        else:
+            raw_tx.checked_map = checked_map
+            raw_tx.avg = avg_unspecified
+
+    def update_participants(ms, tx_info, checked_map):
+        """Update each participant’s owed/paid data."""
+        title = tx_info["title"]
+        total_amount = tx_info["total_amount"]
+        paid_by = tx_info["paid_by"]
+
+        for name, amt in checked_map.items():
+            participant = ms.names_map.get(name)
+            if participant is None:
+                continue
+            participant.total_owed += float(amt)
+            participant.transactions.append({
+                "title": title,
+                "total_amount": float(total_amount),
+                "share": float(amt),
+                "paid_by": paid_by
+            })
+
+        payer = ms.names_map.get(paid_by)
+        if payer:
+            payer.total_paid += float(total_amount)
+
+    def compute_net_balances(ms):
+        """Compute final net balance for each participant."""
+        for p in ms.names_map.values():
+            p.net_balance = (p.total_paid or 0.0) - (p.total_owed or 0.0)
+
+    def safe_asdict(ms):
+        """Convert ms safely to dict for debug/logging."""
+        from dataclasses import asdict, is_dataclass
+        try:
+            return asdict(ms) if is_dataclass(ms) else ms
+        except Exception:
+            out = {"names": ms.names, "names_map": {}, "transactions": []}
+            for k, v in ms.names_map.items():
+                out["names_map"][k] = {
+                    "total_paid": v.total_paid,
+                    "total_owed": v.total_owed,
+                    "net_balance": v.net_balance,
+                    "transactions": v.transactions,
+                }
+            for tx in ms.transactions:
+                if isinstance(tx, dict):
+                    out["transactions"].append(tx)
+                else:
+                    out["transactions"].append({
+                        "title": getattr(tx, "title", None),
+                        "amount": getattr(tx, "amount", None),
+                        "paid_by": getattr(tx, "paid_by", None),
+                        "checked_names": getattr(tx, "checked_names", []),
+                        "even_split": getattr(tx, "even_split", True),
+                        "detail_map": getattr(tx, "detail_map", {}),
+                        "checked_map": getattr(tx, "checked_map", {}),
+                        "avg": getattr(tx, "avg", None),
+                    })
+            return out
+
+    # ===== MAIN LOGIC FLOW =====
+    reset_participants(ms)
+
+    for raw_tx in ms.transactions:
+        tx_info = normalize_transaction(raw_tx)
+        if skip_invalid(tx_info):
+            continue
+        checked_map, avg_unspecified = compute_checked_map(tx_info)
+        store_checked_map(tx_info, checked_map, avg_unspecified)
+        update_participants(ms, tx_info, checked_map)
+
+    compute_net_balances(ms)
+    _ = safe_asdict(ms)  # can be printed/logged if needed
+    return ms
 
 def compute_allocations(ms):
     """
@@ -143,6 +304,7 @@ def compute_allocations(ms):
         # Compute checked_map and avg depending on even_split value
         checked_map = {}
         avg_unspecified = None
+        print("even_split:", even_split)
 
         if even_split:
             # equal division among all checked participants
@@ -152,6 +314,7 @@ def compute_allocations(ms):
             avg_unspecified = share
         else:
             # Non-even split:
+            print(detail_map.values())
             total_specified = sum(detail_map.values()) if detail_map else 0.0
             unspecified_names = [n for n in checked_names if n not in detail_map]
             unspecified_count = len(unspecified_names)
@@ -300,8 +463,8 @@ def print_split_summary(ms):
                 # Convert nested dataclasses safely
                 if is_dataclass(t):
                     t = asdict(t)
-                print(f"    - {t.get('title', '')} | Paid by: {t.get('paid_by', '')} "
-                      f"| Share: {t.get('share', '')} | Total: {t.get('total_amount', '')}")
+                print(f"    - {t.get('title', '')} |     Paid by: {t.get('paid_by', '')} "
+                      f"| Total Amount: {t.get('total_amount', '')} | Your Share: {t.get('share', '')} ")
         else:
             print("  Transactions: None")
         print()
@@ -317,7 +480,7 @@ def print_split_summary(ms):
 def get_matrix(input_data: dict) -> List[List[float]]:
     ms = parse_initial_input(input_data)
 
-    updated_ms = compute_allocations(ms)
+    updated_ms = new_compute_allocations(ms)
     # print(updated_ms)
     # print()
     print_split_summary(updated_ms)
@@ -355,20 +518,22 @@ if __name__ == "__main__":
 
 
     input_uneven = {
-        "name_count": 3,
-        "names": ["Alice", "Bob", "Charlie"],
+        "name_count": 8,
+        "names": ["Shubhankar", "Bobby", "Avikalp", "Rujhil", "Sneha", "Ashwini", "Yash", "Satyam"],
         "transactions": [
-            {
-                "title": "Snacks",
-                "amount": 260,
-                "paid_by": "Alice",
-                "even_split": False,
-                "checked_names": ["Alice", "Bob", "Charlie"],
-                "category": "Food",
-                "uneven_split_map": {
-                    "Alice": 60,
-                }
-            }
+        {
+        "title": "Laziz Non Veg",
+        "amount": 750.0,
+        "paid_by": "Yash",
+        "even_split": False,
+        "checked_names": ["Bobby", "Sneha", "Yash", "Satyam"],
+        "uneven_split_map": {
+            "Bobby": 210,
+            "Sneha": 180,
+            "Yash": 180,
+            "Satyam": 180
+        }
+        }
         ],
         "metadata": {"split_name": "Weekend Trip"}
     }
