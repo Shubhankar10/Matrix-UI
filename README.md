@@ -33,3 +33,41 @@
       }
     }
 ```
+
+
+<details>
+  <summary>Full Sample JSON</summary>
+```
+{ 
+  "name_count": 3,
+  "names": ["Alice", "Bob", "Charlie"],
+  "transactions": [
+    {
+      "title": "Dinner",
+      "amount": 120.0,
+      "paid_by": "Alice",
+      "even_split": true,
+      "checked_names": ["Alice", "Bob", "Charlie"],
+      "category": "Food"
+    },
+    {
+      "title": "Snacks",
+      "amount": 90.0,
+      "paid_by": "Bob",
+      "even_split": false,
+      "checked_names": ["Alice", "Bob", "Charlie"],
+      "category": "Food",
+      "uneven_split_map": {
+        "Alice": 50,
+        "Charlie": 20
+      }
+    }
+  ],
+  "metadata": {
+    "split_name": "Weekend Trip"
+  }
+}
+
+```
+
+</details>
