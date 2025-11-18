@@ -1,0 +1,58 @@
+{
+  "name_count": 8,
+  "names": ["Shubhankar", "Bobby", "Avikalp", "Rujhil", "Sneha", "Ashwini", "Yash", "Satyam","Neeraj"],
+  "transactions": [
+    {
+      "title": "Metro Recharge Cash - Dmart",
+      "amount": 200.0,
+      "paid_by": "Shubhankar",
+      "even_split": true,
+      "checked_names": ["Yash"]
+    },
+    {
+      "title": "Metro Recharge Cash - Jasola",
+      "amount": 100.0,
+      "paid_by": "Shubhankar",
+      "even_split": true,
+      "checked_names": ["Bobby"]
+    },
+    {
+      "title": "Bra",
+      "amount": 360.0,
+      "paid_by": "Avikalp",
+      "even_split": true,
+      "checked_names": ["Yash","Shubhankar","Avikalp","Satyam"]
+    },
+    {
+      "title": "Waffle - Bobby BDay",
+      "amount": 1120.0,
+      "paid_by": "Rujhil",
+      "even_split": true,
+      "checked_names":  ["Shubhankar", "Avikalp", "Rujhil", "Sneha", "Ashwini", "Yash", "Satyam"]
+    },
+    {
+      "title": "Cake - HCL",
+      "amount": 566.0,
+      "paid_by": "Shubhankar",
+      "even_split": true,
+      "checked_names":  ["Shubhankar", "Avikalp", "Rujhil", "Sneha", "Yash", "Bobby"]
+    },
+    {
+      "title": "McD Ice Cream",
+      "amount": 86.0,
+      "paid_by": "Shubhankar",
+      "even_split": true,
+      "checked_names":  ["Avikalp", "Rujhil"]
+    },
+    {
+      "title": "DMart Pizza Extra Paid",
+      "amount": 90.0,
+      "paid_by": "Shubhankar",
+      "even_split": true,
+      "checked_names":  ["Avikalp"]
+    }
+  ],
+  "metadata": {
+    "split_name": "Dmart, Birthday, HCL, Jasola"
+  }
+}

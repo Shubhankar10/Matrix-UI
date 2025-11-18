@@ -5,7 +5,7 @@ import numpy as np
 
 
 # GET JSON DATA
-with open('json\wedKalkaji.json', 'r') as file:
+with open(r'json\all8.json', 'r') as file:
     data = json.load(file)
 
 

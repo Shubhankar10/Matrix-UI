@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 import json
 from dataclasses import is_dataclass
 
+PRINT_FOR_PHONE = False
 
 @dataclass
 class Transaction:
@@ -456,15 +457,19 @@ def print_split_summary(ms):
         print(f"{name}:")
         print(f"  Total Paid : {p.total_paid}")
         print(f"  Total Owed : {p.total_owed}")
-        print(f"  Net Balance: {p.net_balance}")
+        print(f"  Net Balance: {p.net_balance} | {f'To Pay {(-1)*p.net_balance}' if p.net_balance < 0 else f'To Get {p.net_balance}'}")
         if p.transactions:
             print("  Transactions:")
             for t in p.transactions:
                 # Convert nested dataclasses safely
                 if is_dataclass(t):
                     t = asdict(t)
-                print(f"    - {t.get('title', '')} |     Paid by: {t.get('paid_by', '')} "
-                      f"| Total Amount: {t.get('total_amount', '')} | Your Share: {t.get('share', '')} ")
+                if PRINT_FOR_PHONE:
+                    print(f"- {t.get('title', '')} \n   Paid by: {t.get('paid_by', '')}\n"
+                        f"   Total Amount: {t.get('total_amount', '')}\n   Your Share: {t.get('share', '')} ")
+                else:
+                    print(f"    - {t.get('title', '')} |     Paid by: {t.get('paid_by', '')} "
+                        f"| Total Amount: {t.get('total_amount', '')} | Your Share: {t.get('share', '')} ")
         else:
             print("  Transactions: None")
         print()
